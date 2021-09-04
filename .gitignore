@@ -1,6 +1,13 @@
+# Builds
+simulation
+simulation.exe
+
 # IDE Folders
 .vs
 .vscode
+
+# Renders
+frame*.ppm
 
 # Windows File System
 desktop.ini

@@ -49,12 +49,20 @@ typedef struct {
 	vec3 velocity;
 } particleData;
 
-#define N_STEPS 150U
-#define TIMESTEP 0.001F
-#define N_PARTICLES 10000U
+#define N_STEPS 50U
+#define TIMESTEP 0.01F
+#define N_PARTICLES 4000U
 
 #define RENDER_SIZE_X 640U
 #define RENDER_SIZE_Y 360U
+
+#define str 0.01F
+#define sigma 0.1F
+
+float square(float x)
+{
+	return x * x;
+}
 
 // ##### Main #####
 int main()
@@ -115,11 +123,11 @@ int main()
 
 				vec3 delta = subtract_vec3(neighbor_particle.position, old_particle.position);
 
-				//float d = dotp3(delta)/(sigma*sigma);
-				//vec3 f = multiply_vec3f(normalize3(delta), str*((2.0F/square(d*d*d))-(1.0F/(d*d*d))));
+				float d = max(dotp3(delta), 0.01F)/(sigma*sigma);
+				vec3 f = multiply_vec3f(normalize3(delta), str*((2.0F/square(d*d*d))-(1.0F/(d*d*d))));
 
-				float d = 1.0F/max(dotp3(delta), 0.1F);
-				vec3 f = multiply_vec3f(normalize3(delta), 0.0001F*d);
+				//float d = 1.0F/max(dotp3(delta), 0.1F);
+				//vec3 f = multiply_vec3f(normalize3(delta), 0.0001F*d);
 
 				force = add_vec3(force, f);
 			}
@@ -141,10 +149,18 @@ int main()
 		{
 			particleData render_particle = new_particle_buffer[i];
 
-			unsigned int pixelCoord_x = min(max(uint((render_particle.position.x+0.5F)*float(RENDER_SIZE_X)), 0U), RENDER_SIZE_X);
-			unsigned int pixelCoord_y = min(max(uint((render_particle.position.y+0.5F)*float(RENDER_SIZE_Y)), 0U), RENDER_SIZE_Y);
+			float pixelCoord_x = (render_particle.position.x+0.5F)*float(RENDER_SIZE_X);
+			float pixelCoord_y = (render_particle.position.y+0.5F)*float(RENDER_SIZE_Y);
 
-			render_buffer[min(pixelCoord_x+(pixelCoord_y*RENDER_SIZE_X), (RENDER_SIZE_X*RENDER_SIZE_Y)-1U)] = float3f(1.0F);
+			if((pixelCoord_x < 0.0F) || (pixelCoord_x > float(RENDER_SIZE_X)) || (pixelCoord_y < 0.0F) || (pixelCoord_y > float(RENDER_SIZE_Y)))
+			{
+				continue;
+			}
+
+			unsigned int iPixelCoord_x = min(max(uint(pixelCoord_x), 0U), RENDER_SIZE_X);
+			unsigned int iPixelCoord_y = min(max(uint(pixelCoord_y), 0U), RENDER_SIZE_Y);
+
+			render_buffer[min(iPixelCoord_x+(iPixelCoord_y*RENDER_SIZE_X), (RENDER_SIZE_X*RENDER_SIZE_Y)-1U)] = float3f(1.0F);
 
 			old_particle_buffer[i] = render_particle;
 		}
@@ -153,6 +169,7 @@ int main()
 		ofstream imageFile;
 		imageFile.open(fileName);
 
+		/*
 		// Write Header to File
 		imageFile << "P3" << std::endl << RENDER_SIZE_X << " " << RENDER_SIZE_Y << std::endl << "255" << std::endl;
 
@@ -165,6 +182,21 @@ int main()
 			int channel_b = min(max(int(255.0F*render_buffer[i].z), 0), 255);
 
 			imageFile << channel_r << " " << channel_g << " " << channel_b << " ";
+		}
+		*/
+
+		// Write Header to File
+		imageFile << "P6" << std::endl << RENDER_SIZE_X << " " << RENDER_SIZE_Y << std::endl << "255" << std::endl;
+
+		// Save Rendered Timestep
+		for(unsigned int i = 0U; i < RENDER_SIZE_X*RENDER_SIZE_Y; i++)
+		{
+			// Quantization
+			char channel_r = char(min(max(int(255.0F*render_buffer[i].x), 0), 255));
+			char channel_g = char(min(max(int(255.0F*render_buffer[i].y), 0), 255));
+			char channel_b = char(min(max(int(255.0F*render_buffer[i].z), 0), 255));
+
+			imageFile << channel_r << channel_g << channel_b;
 		}
 
 		imageFile.close();

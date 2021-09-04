@@ -1,0 +1,6 @@
+# IDE Folders
+.vs
+.vscode
+
+# Windows File System
+desktop.ini

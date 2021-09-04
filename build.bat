@@ -1,0 +1,1 @@
+g++ -march=native -Ofast -s -pthread -Wall -Wextra main.cpp -o simulation.exe

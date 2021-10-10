@@ -12,7 +12,7 @@ using namespace std;
 
 #define N_STEPS 300U
 #define TIMESTEP 0.001F
-#define N_PARTICLES 1000U
+#define N_PARTICLES 10000U
 
 #define RENDER_SIZE_X 640U
 #define RENDER_SIZE_Y 360U
@@ -62,7 +62,7 @@ int main()
 
 	for(unsigned int i = 0U; i < N_PARTICLES; i++)
 	{
-		old_buffer[i].position = subtract_vec3f(rand3(), 0.5F);
+		old_buffer[i].position = rand3()-0.5F;
 		old_buffer[i].velocity = udir3();
 	}
 
@@ -78,7 +78,7 @@ int main()
 			particleData old_particle = old_buffer[i];
 			particleData new_particle;
 
-			vec3 force = float3f(0.0F);
+			vec3 force = vec3(0.0F);
 
 			for(unsigned int particle = 0U; particle < N_PARTICLES; particle++)
 			{
@@ -89,7 +89,7 @@ int main()
 
 				particleData neighbor_particle = old_buffer[particle];
 
-				vec3 delta = subtract_vec3(neighbor_particle.position, old_particle.position);
+				vec3 delta = neighbor_particle.position-old_particle.position;
 
 				// Newtonian Attraction
 				//float d = 1.0F/max(dotp3(delta), 0.1F);
@@ -97,14 +97,14 @@ int main()
 
 				// https://arxiv.org/pdf/1401.1181.pdf
 				// Expression 57
-				float d = max(dotp3(delta), 0.01F)/(sigma*sigma);
-				vec3 f = multiply_vec3f(normalize3(delta), strength*((2.0F/square(d*d*d))-(1.0F/(d*d*d))));
+				float d = std::max(dot(delta, delta), 0.01F)/(sigma*sigma);
+				vec3 f = normalize(delta)*(strength*((2.0F/square(d*d*d))-(1.0F/(d*d*d))));
 
-				force = add_vec3(force, f);
+				force += f;
 			}
 
-			new_particle.velocity = add_vec3(old_particle.velocity, force);
-			new_particle.position = add_vec3(old_particle.position, multiply_vec3f(new_particle.velocity, TIMESTEP));
+			new_particle.velocity = old_particle.velocity+force;
+			new_particle.position = old_particle.position+(new_particle.velocity*TIMESTEP);
 
 			new_buffer[i] = new_particle;
 		}
@@ -112,7 +112,7 @@ int main()
 		// Clear Render Buffer
 		for(unsigned int i = 0U; i < RENDER_SIZE_X*RENDER_SIZE_Y; i++)
 		{
-			render_buffer[i] = float3f(0.0F);
+			render_buffer[i] = vec3(0.0F);
 		}
 
 		// Render Timestep
@@ -133,7 +133,7 @@ int main()
 			}
 
 			// White Particles
-			vec3 particleColor = float3f(1.0F);
+			vec3 particleColor = vec3(1.0F);
 
 			// Distance Colored Particles
 			//vec3 particleColor = 1.0F/(render_particle.position.z);
@@ -141,10 +141,10 @@ int main()
 			// Velocity Colored Particles
 			//vec3 particleColor = float3(abs(render_particle.velocity.x), abs(render_particle.velocity.y), abs(render_particle.velocity.z));
 
-			unsigned int iPixelCoord_x = min(max(uint(pixelCoord_x), 0U), RENDER_SIZE_X);
-			unsigned int iPixelCoord_y = min(max(uint(pixelCoord_y), 0U), RENDER_SIZE_Y);
+			unsigned int iPixelCoord_x = std::min(std::max(uint(pixelCoord_x), 0U), RENDER_SIZE_X);
+			unsigned int iPixelCoord_y = std::min(std::max(uint(pixelCoord_y), 0U), RENDER_SIZE_Y);
 
-			render_buffer[min(iPixelCoord_x+(iPixelCoord_y*RENDER_SIZE_X), (RENDER_SIZE_X*RENDER_SIZE_Y)-1U)] = particleColor;
+			render_buffer[std::min(iPixelCoord_x+(iPixelCoord_y*RENDER_SIZE_X), (RENDER_SIZE_X*RENDER_SIZE_Y)-1U)] = particleColor;
 		}
 
 		std::string fileName = "render/frame"+std::to_string(step)+".ppm";
@@ -158,9 +158,9 @@ int main()
 		for(unsigned int i = 0U; i < RENDER_SIZE_X*RENDER_SIZE_Y; i++)
 		{
 			// Quantization
-			char channel_r = char(min(max(int(255.0F*render_buffer[i].x), 0), 255));
-			char channel_g = char(min(max(int(255.0F*render_buffer[i].y), 0), 255));
-			char channel_b = char(min(max(int(255.0F*render_buffer[i].z), 0), 255));
+			char channel_r = char(std::min(std::max(int(255.0F*render_buffer[i].x), 0), 255));
+			char channel_g = char(std::min(std::max(int(255.0F*render_buffer[i].y), 0), 255));
+			char channel_b = char(std::min(std::max(int(255.0F*render_buffer[i].z), 0), 255));
 
 			imageFile << channel_r << channel_g << channel_b;
 		}

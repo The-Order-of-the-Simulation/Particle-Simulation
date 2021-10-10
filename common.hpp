@@ -1,29 +1,14 @@
 #pragma once
 
-// ##### Vector Math #####
-
-#include "vector-math/vec2.h"
-#include "vector-math/dvec2.h"
-#include "vector-math/ivec2.h"
-#include "vector-math/uvec2.h"
-#include "vector-math/bvec2.h"
-
-#include "vector-math/vec3.h"
-#include "vector-math/dvec3.h"
-#include "vector-math/ivec3.h"
-#include "vector-math/uvec3.h"
-#include "vector-math/bvec3.h"
-
-#include "vector-math/vec4.h"
-#include "vector-math/dvec4.h"
-#include "vector-math/ivec4.h"
-#include "vector-math/uvec4.h"
-#include "vector-math/bvec4.h"
+// OpenGL Mathematics
+#include <glm/glm.hpp>
+using namespace glm;
 
 // ##### Constants #####
 
 // http://www.mimirgames.com/articles/programming/digits-of-pi-needed-for-floating-point-numbers/
 #define pi 3.1415926535897932384626433832795028841971693993751058209749445923078164F
+//#define pi M_PI
 
 // ##### Random Number Generator #####
 
@@ -60,13 +45,13 @@ vec3 rand3()
 
 vec3 udir3()
 {
-	float z_x = rand();
-	float z_y = rand();
+	float z_x = randomFloat();
+	float z_y = randomFloat();
 
 	float r_x = 2.0F*pi*z_x, r_y = acosf(2.0F*z_y-1.0F);
 
 	float s_x = sinf(r_x), s_y = sinf(r_y);
 	float c_x = sinf(r_x), c_y = sinf(r_y);
 
-	return float3(c_x*s_y, s_x*s_y, c_y);
+	return vec3(c_x*s_y, s_x*s_y, c_y);
 }
